@@ -1,0 +1,39 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 输入框用于选择范围 -->
+
+    <!-- 确定按钮放置在顶部的右侧 -->
+    <EditText
+        android:id="@+id/rangeInput"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="2dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginRight="6dp"
+        android:layout_toLeftOf="@id/confirmButton"
+        android:hint="请输入范围"
+        android:inputType="number" />
+
+    <!-- 百度地图的 MapView 在输入框和按钮下方显示 -->
+    <Button
+        android:id="@+id/confirmButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="14dp"
+        android:layout_marginRight="5dp"
+        android:text="确定" />
+
+    <com.baidu.mapapi.map.MapView
+        android:id="@+id/baiduMapView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/rangeInput"
+        android:layout_marginTop="8dp" />
+
+</RelativeLayout>
