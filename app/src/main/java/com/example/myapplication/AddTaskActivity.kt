@@ -3,8 +3,12 @@ package com.example.myapplication
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -46,6 +50,14 @@ class AddTaskActivity : AppCompatActivity() {
 
     // 日期和时间选择器
     private fun showDateTimePicker() {
+        // 震动反馈
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(100)
+        }
         val calendar = Calendar.getInstance()
         val year = calendar.get(Calendar.YEAR)
         val month = calendar.get(Calendar.MONTH)
@@ -72,7 +84,7 @@ class AddTaskActivity : AppCompatActivity() {
     data class GeoFence(val latitude: Double, val longitude: Double, val radius: Double) {
         // 检查一个点是否在范围内
         fun contains(lat: Double, lon: Double): Boolean {
-            val earthRadius = 6371.0 // 地球半径，单位：公里
+            val earthRadius = 6371000.0 // 地球半径，单位：公里
             val dLat = Math.toRadians(lat - latitude)
             val dLon = Math.toRadians(lon - longitude)
 
@@ -107,6 +119,14 @@ class AddTaskActivity : AppCompatActivity() {
 
     // 位置选择器
     private fun showLocationPicker() {
+        // 震动反馈
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(100)
+        }
         val intent = Intent(this, GetMap::class.java)
         resultLauncher.launch(intent)
     }
@@ -114,6 +134,14 @@ class AddTaskActivity : AppCompatActivity() {
 
     // 保存任务
     private fun saveTask() {
+        // 震动反馈
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(100)
+        }
         val taskName = taskNameInput.text.toString()
 
         // 校验任务名称是否为空
@@ -143,4 +171,17 @@ class AddTaskActivity : AppCompatActivity() {
         setResult(Activity.RESULT_OK, resultIntent)
         finish()
     }
+
+    override fun finish() {
+        // 震动反馈
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(100)
+        }
+        super.finish()
+    }
+
 }

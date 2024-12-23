@@ -20,6 +20,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.provider.Settings
 import android.view.View
 import androidx.appcompat.app.AlertDialog
@@ -63,6 +65,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        createNotificationChannel()
 
         // 检查并请求精准闹钟权限
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -136,25 +140,27 @@ class MainActivity : AppCompatActivity() {
     private fun startLocationUpdates() {
         locationListener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
-                // 在此处理获取到的位置信息
+                // 打印位置
                 val latitude = location.latitude
                 val longitude = location.longitude
                 println("Latitude: $latitude, Longitude: $longitude")
+
                 // 轮询任务列表，检查当前位置是否在任务的地理围栏内
                 tasks.forEach { task ->
-                        val area = task.location
-                        if (area.contains(latitude, longitude)) {
-                            println("yes")
-                            // 如果在围栏内，显示通知
-                            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                            val notification = NotificationCompat.Builder(this@MainActivity, "task_reminder_channel")
-                                .setSmallIcon(R.drawable.notify)
-                                .setContentTitle("任务提醒: ${task.name}")
-                                .setContentText("您已进入任务 ${task.name} 的范围，快去完成它吧!!!")
-                                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                                .setAutoCancel(true)
-                                .build()
-                            notificationManager.notify(task.name.hashCode(), notification)
+                    val area = task.location
+                    println("${area.latitude},${area.longitude},${area.radius}")
+                    if (area.contains(latitude, longitude)) {
+                        println("yes")
+                        // 如果在围栏内，显示通知
+                        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                        val notification = NotificationCompat.Builder(this@MainActivity, "task_reminder_channel")
+                            .setSmallIcon(R.drawable.notify)
+                            .setContentTitle("任务提醒: ${task.name}")
+                            .setContentText("您已进入任务 ${task.name} 的范围，快去完成它吧!!!")
+                            .setPriority(NotificationCompat.PRIORITY_HIGH)
+                            .setAutoCancel(true)
+                            .build()
+                        notificationManager.notify(task.name.hashCode(), notification)
                     }
                 }
             }
@@ -162,6 +168,16 @@ class MainActivity : AppCompatActivity() {
             override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
             override fun onProviderEnabled(provider: String) {}
             override fun onProviderDisabled(provider: String) {}
+        }
+
+        // 确保位置权限已授予后，启动位置更新
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10f,
+                locationListener as LocationListener
+            )
+        } else {
+            // 如果没有权限，要求用户授权
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
         }
 
         // 启动位置更新，每30秒获取一次
@@ -173,15 +189,18 @@ class MainActivity : AppCompatActivity() {
         override fun run() {
             // 获取当前位置
             getCurrentLocation()
+//            println("1111111111111111111111")
             // 每30秒轮询一次
-            handler.postDelayed(this, 60000)
+            handler.postDelayed(this, 30000)
         }
     }
 
     // 获取当前地理位置
     private fun getCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
             // 如果没有权限，则不进行操作
             return
         }
@@ -303,6 +322,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupAddTaskButton() {
         binding.fabAddTask.setOnClickListener {
+            // 震动反馈
+            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(100)
+            }
             val intent = Intent(this, AddTaskActivity::class.java)
             startActivityForResult(intent, REQUEST_ADD_TASK)
         }
@@ -340,6 +367,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showTaskDetails(position: Int) {
+        // 震动反馈
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(100)
+        }
         val task = tasks[position]
 
         // 创建一个 AlertDialog 来显示任务的详细信息
@@ -359,6 +394,15 @@ class MainActivity : AppCompatActivity() {
     private fun toggleTaskCompletion(position: Int) {
         val task = tasks[position]
         val action = if (task.isCompleted) "标记未完成" else "标记完成"
+
+        // 震动反馈
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(100)
+        }
 
         showConfirmationDialog(
             title = action,
@@ -425,6 +469,14 @@ class MainActivity : AppCompatActivity() {
             title = "删除任务",
             message = "你确定要删除 \"${task.name}\" 吗?",
             onConfirm = {
+                // 震动反馈
+                val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+                } else {
+                    @Suppress("DEPRECATION")
+                    vibrator.vibrate(100)
+                }
                 // 使用协程确保在后台线程执行数据库操作
                 lifecycleScope.launch {
                     // 从数据库删除任务
@@ -450,6 +502,14 @@ class MainActivity : AppCompatActivity() {
                 }
             },
             onCancel = {
+                // 震动反馈
+                val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+                } else {
+                    @Suppress("DEPRECATION")
+                    vibrator.vibrate(100)
+                }
                 taskAdapter.notifyItemChanged(position)
             }
         )

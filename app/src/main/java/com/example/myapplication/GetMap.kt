@@ -3,13 +3,17 @@ package com.example.myapplication
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.Button
@@ -144,6 +148,14 @@ class GetMap : AppCompatActivity() {
         // 设置确定按钮点击事件
         val confirmButton: Button = findViewById(R.id.confirmButton)
         confirmButton.setOnClickListener {
+            // 震动反馈
+            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(100)
+            }
             if (selectedMarker == null) {
                 Toast.makeText(this, "请先选择一个位置", Toast.LENGTH_SHORT).show()
             } else {
